@@ -1,6 +1,6 @@
 {
-  "name": "codetable",
-  "version": "0.0.0",
+  "name": "CollabCode",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "start": "node ./bin/www"
@@ -16,6 +16,5 @@
     "serve-favicon": "~2.3.0",
     "share": "^0.7.40",
     "share-codemirror": "^0.1.0",
-    "socket.io": "^1.4.6"
   }
 }
