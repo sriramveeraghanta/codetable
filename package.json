@@ -15,6 +15,6 @@
     "redis": "^2.6.0-2",
     "serve-favicon": "~2.3.0",
     "share": "^0.7.40",
-    "share-codemirror": "^0.1.0",
+    "share-codemirror": "^0.1.0"
   }
 }
