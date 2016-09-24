@@ -8,23 +8,40 @@ var app = require('../app');
 var debug = require('debug')('codetable:server');
 var http = require('http');
 
-/**
- * Get port from environment and store in Express.
- */
+var ShareDB = require('sharedb');
+var WebSocket = require('ws');
+var WebSocketJSONStream = require('websocket-json-stream');
+var backend = new ShareDB();
+
+createDoc(startServer);
 
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
-/**
- * Create HTTP server.
- */
-
 var server = http.createServer(app);
 
+// Create initial document then fire callback
+function createDoc(callback) {
+  var connection = backend.connect();
+  var doc = connection.get('examples', 'textarea');
+  doc.fetch(function(err) {
+    if (err) throw err;
+    if (doc.type === null) {
+      doc.create('', callback);
+      return;
+    }
+    callback();
+  });
+}
 
-/**
- * Listen on provided port, on all network interfaces.
- */
+function startServer() {
+  // Create a web server to serve files and listen to WebSocket connections
+  var wss = new WebSocket.Server({server: server});
+  wss.on('connection', function(ws, req) {
+    var stream = new WebSocketJSONStream(ws);
+    backend.listen(stream);
+  });
+}
 
 server.listen(port);
 server.on('error', onError);
