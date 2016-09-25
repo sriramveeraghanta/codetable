@@ -10,7 +10,6 @@ var routes = require('./routes/index');
 
 var app = express();
 
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
@@ -22,6 +21,42 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+var Duplex = require('stream').Duplex;
+var browserChannel = require('browserchannel').server
+
+var livedb = require('livedb');
+var sharejs = require('share');
+
+var backend = livedb.client(livedb.memory());
+var share = require('share').server.createClient({backend: backend});
+
+var shareCodeMirror = require('share-codemirror');
+app.use(browserChannel(function (client) {
+  var stream = new Duplex({objectMode: true});
+  stream._write = function (chunk, encoding, callback) {
+    if (client.state !== 'closed') {
+      client.send(chunk);
+    }
+    callback();
+  };
+  stream._read = function () {
+  };
+  stream.headers = client.headers;
+  stream.remoteAddress = stream.address;
+  client.on('message', function (data) {
+    stream.push(data);
+  });
+  stream.on('error', function (msg) {
+    client.stop();
+  });
+  client.on('close', function (reason) {
+    stream.emit('close');
+    stream.emit('end');
+    stream.end();
+  });
+  return share.listen(stream);
+}));
 
 
 //routes
